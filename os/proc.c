@@ -2,6 +2,7 @@
 #include "defs.h"
 #include "loader.h"
 #include "trap.h"
+#include "timer.h"
 
 struct proc pool[NPROC];
 char kstack[NPROC][PAGE_SIZE];
@@ -67,6 +68,13 @@ found:
 	memset((void *)p->kstack, 0, PAGE_SIZE);
 	p->context.ra = (uint64)usertrapret;
 	p->context.sp = p->kstack + PAGE_SIZE;
+
+	for (int i = 0; i < MAX_SYSCALL_NUM; i++) {
+    	p->syscall_counts[i] = 0; // tracking arrya to all zeros
+	}
+	p->initial_cycle = 0;
+
+
 	return p;
 }
 
@@ -84,6 +92,10 @@ void scheduler(void)
 				/*
 				* LAB1: you may need to init proc start time here
 				*/
+				if (p->initial_cycle == 0) {
+					p->initial_cycle = get_cycle();
+				}
+
 				p->state = RUNNING;
 				current_proc = p;
 				swtch(&idle.context, &p->context);

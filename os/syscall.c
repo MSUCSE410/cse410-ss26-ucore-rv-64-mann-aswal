@@ -39,6 +39,25 @@ uint64 sys_gettimeofday(TimeVal *val, int _tz)
 /*
 * LAB1: you may need to define sys_task_info here
 */
+int sys_task_info(struct TaskInfo *info) {
+    struct proc *p = curr_proc();
+    
+    if (info == 0) {
+        return -1; 
+    }
+    
+    info->status = 2; // the user tests expects 2 for RUNNING
+    
+    for (int i = 0; i < MAX_SYSCALL_NUM; i++) {
+        info->syscall_counts[i] = p->syscall_counts[i]; // copy our to user struct
+    }
+    
+    uint64 current_cycle = get_cycle();
+    uint64 elapsed_cycles = current_cycle - p->initial_cycle;
+    info->time = (int)(elapsed_cycles / (CPU_FREQ / 1000)); // cycles per sec to per ms
+    
+    return 0; 
+}
 
 extern char trap_page[];
 
@@ -53,6 +72,12 @@ void syscall()
 	/*
 	* LAB1: you may need to update syscall counter for task info here
 	*/
+
+	struct proc *p = curr_proc();
+	
+	if (id >= 0 && id < MAX_SYSCALL_NUM) {
+        p->syscall_counts[id]++; // increment this syscall id tally
+    }
 	switch (id) {
 	case SYS_write:
 		ret = sys_write(args[0], (char *)args[1], args[2]);
@@ -69,6 +94,13 @@ void syscall()
 	/*
 	* LAB1: you may need to add SYS_taskinfo case here
 	*/
+	case SYS_task_info:
+		// Cast the first argument (args[0]) to a TaskInfo pointer
+		ret = sys_task_info((struct TaskInfo *)args[0]);
+		break;
+	case 172: // SYS_getpid 172 is the standard syscall id for getpid and we need to handle it
+		ret = p->pid;
+		break;
 	default:
 		ret = -1;
 		errorf("unknown syscall %d", id);

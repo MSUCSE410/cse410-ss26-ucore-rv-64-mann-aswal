@@ -157,31 +157,6 @@ int sys_munmap(uint64 start_va, uint64 len)
 	return 0;
 }
 
-// sys_munmap: unmap a user range; every page in the range must be mapped
-int sys_munmap(uint64 start_va, uint64 len)
-{
-	struct proc *p = curr_proc();
-	pagetable_t pt = p->pagetable;
-	uint64 va0, end, address;
-
-	va0 = start_va;
-	if ((va0 % PGSIZE) != 0)
-		return -1;
-
-	end = PGROUNDUP(va0 + len); 
-	if (end < va0)
-		return -1;
-
-	for (address = va0; address < end; address += PGSIZE) {
-		if (walkaddr(pt, address) == 0)
-			return -1;
-	}
-
-	uint64 npages = (end - va0) / PGSIZE;
-	uvmunmap(pt, va0, npages, 1);
-	return 0;
-}
-
 extern char trap_page[];
 
 void syscall()

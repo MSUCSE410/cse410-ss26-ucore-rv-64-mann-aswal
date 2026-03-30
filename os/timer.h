@@ -12,8 +12,8 @@ void timer_init();
 void set_next_timer();
 
 typedef struct { // How to process structures in VA?
-	uint64 sec; // 自 Unix 纪元起的秒数
-	uint64 usec; // 微秒数
+	uint64 sec; // Seconds component (number of seconds past the Unix epoch)
+	uint64 usec; // Microseconds component (number of microseconds past the current second)
 } TimeVal;
 
 #endif // TIMER_H

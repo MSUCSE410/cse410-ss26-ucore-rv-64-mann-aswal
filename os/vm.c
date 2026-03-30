@@ -65,6 +65,12 @@ pte_t *walk(pagetable_t pagetable, uint64 va, int alloc)
 	return &pagetable[PX(0, va)];
 }
 
+// Map one page: va -> pa with perm
+int walkpages(pagetable_t pagetable, uint64 va, uint64 pa, int perm)
+{
+	return mappages(pagetable, va, PGSIZE, pa, perm);
+}
+
 // Look up a virtual address, return the physical address,
 // or 0 if not mapped.
 // Can only be used to look up user pages.

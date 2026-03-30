@@ -1,6 +1,7 @@
 #include "proc.h"
 #include "defs.h"
 #include "loader.h"
+#include "timer.h"
 #include "trap.h"
 #include "vm.h"
 
@@ -69,6 +70,13 @@ found:
 	memset((void *)p->trapframe, 0, TRAP_PAGE_SIZE);
 	p->context.ra = (uint64)usertrapret;
 	p->context.sp = p->kstack + KSTACK_SIZE;
+
+	for (int i = 0; i < MAX_SYSCALL_NUM; i++) {
+		p->syscall_counts[i] = 0;
+	}
+	p->initial_cycle = 0;
+
+	
 	return p;
 }
 
@@ -86,6 +94,9 @@ void scheduler(void)
 				/*
 				* LAB1: you may need to init proc start time here
 				*/
+				if (p->initial_cycle == 0) {
+					p->initial_cycle = get_cycle();
+				}
 				p->state = RUNNING;
 				current_proc = p;
 				swtch(&idle.context, &p->context);

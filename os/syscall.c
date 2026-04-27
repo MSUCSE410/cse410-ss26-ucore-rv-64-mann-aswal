@@ -102,10 +102,11 @@ uint64 sys_spawn(uint64 va)
 	struct proc *child;
 	char name[200];
 
+	// copy the name of the program to execute from user space to kernel space
 	if (copyinstr(parent->pagetable, name, va, sizeof(name)) < 0)
 		return -1;
 
-	int id = get_id_by_name(name);
+	int id = get_id_by_name(name); // get the id of the program to execute
 	if (id < 0)
 		return -1;
 
@@ -113,8 +114,12 @@ uint64 sys_spawn(uint64 va)
 	if (child == 0)
 		return -1;
 	child->parent = parent;
+
+	// load the program to execute into the child process's memory
 	loader(id, child);
-	add_task(child);
+	// add_task(child);
+	child->state = RUNNABLE; // set the child process's state to RUNNABLE so that it can be scheduled by new scheduler
+
 	return child->pid;
 }
 

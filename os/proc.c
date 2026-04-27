@@ -105,20 +105,26 @@ found:
 void scheduler()
 {
 	struct proc *p;
+	
+	// loop over process table looking for process to run
 	for (;;) {
 		struct proc *chosen = NULL;
 
 		for (p = pool; p < &pool[NPROC]; p++) {
 			if (p->state == RUNNABLE) {
+				// if process is RUNNABLE, choose the one with the smallest stride value to run
 				if (chosen == NULL || p->stride < chosen->stride)
 					chosen = p;
 			}
 		}
 		if (chosen == NULL)
 			panic("all app are over!\n");
+
+		// update the stride value of the chosen process and switch to it
 		chosen->stride += chosen->pass;
 		chosen->state = RUNNING;
 		current_proc = chosen;
+		
 		swtch(&idle.context, &chosen->context);
 	}
 }
